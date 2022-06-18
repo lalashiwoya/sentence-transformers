@@ -2,7 +2,7 @@ import torch
 from torch import nn, Tensor
 from typing import Iterable, Dict
 from sentence_transformers import SentenceTransformer
-from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, PreTrainedModel
+from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, PreTrainedModel, XLNetTokenizer, XLNetConfig, XLNetModel, XLNetLMHeadModel
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,19 +42,26 @@ class DenoisingAutoEncoderLoss(nn.Module):
             if decoder_name_or_path:
                 logger.warning('When tie_encoder_decoder=True, the decoder_name_or_path will be invalid.')
             decoder_name_or_path = encoder_name_or_path
-
-        self.tokenizer_decoder = AutoTokenizer.from_pretrained(decoder_name_or_path)
+        if decoder_name_or_path.startswith('xlnet'):
+            self.tokenizer_decoder = XLNetTokenizer.from_pretrained(decoder_name_or_path)
+             decoder_config = XLNetConfig.from_pretrained(decoder_name_or_path)
+        else:
+            self.tokenizer_decoder = AutoTokenizer.from_pretrained(decoder_name_or_path)
+            decoder_config = AutoConfig.from_pretrained(decoder_name_or_path)
         self.need_retokenization = not (type(self.tokenizer_encoder) == type(self.tokenizer_decoder))
 
-        decoder_config = AutoConfig.from_pretrained(decoder_name_or_path)
+        #decoder_config = AutoConfig.from_pretrained(decoder_name_or_path)
         decoder_config.is_decoder = True
         decoder_config.add_cross_attention = True
         kwargs_decoder = {'config': decoder_config}
-        try:
-            self.decoder = AutoModelForCausalLM.from_pretrained(decoder_name_or_path, **kwargs_decoder)
-        except ValueError as e:
-            logger.error(f'Model name or path "{decoder_name_or_path}" does not support being as a decoder. Please make sure the decoder model has an "XXXLMHead" class.')
-            raise e
+        if decoder_name_or_path.startswith('xlnet'):
+            self.decoder = XLNetLMHeadModel.from_pretrained(decoder_name_or_path, **kwargs_decoder)
+        else:
+            try:
+                self.decoder = AutoModelForCausalLM.from_pretrained(decoder_name_or_path, **kwargs_decoder)
+            except ValueError as e:
+                logger.error(f'Model name or path "{decoder_name_or_path}" does not support being as a decoder. Please make sure the decoder model has an "XXXLMHead" class.')
+                raise e
         assert model[0].auto_model.config.hidden_size == decoder_config.hidden_size, 'Hidden sizes do not match!'
         if self.tokenizer_decoder.pad_token is None:
             # Needed by GPT-2, etc.
