@@ -1,5 +1,5 @@
 from torch import nn
-from transformers import AutoModel, AutoTokenizer, AutoConfig, T5Config
+from transformers import AutoModel, AutoTokenizer, AutoConfig, T5Config, XLNetTokenizer, XLNetModel
 import json
 from typing import List, Dict, Optional, Union, Tuple
 import os
@@ -24,11 +24,16 @@ class Transformer(nn.Module):
         super(Transformer, self).__init__()
         self.config_keys = ['max_seq_length', 'do_lower_case']
         self.do_lower_case = do_lower_case
+        if model_name_or_path.startswith('xlnet'):
+            self.auto_model = XLNetModel.from_pretrained(model_name_or_path)
+            self.tokenizer = XLNetTokenizer.from_pretrained(model_name_or_path)
+        else:
+            self.auto_model = AutoModel.from_pretrained(model_name_or_path)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        #config = AutoConfig.from_pretrained(model_name_or_path, **model_args, cache_dir=cache_dir)
+        #self._load_model(model_name_or_path, config, cache_dir)
 
-        config = AutoConfig.from_pretrained(model_name_or_path, **model_args, cache_dir=cache_dir)
-        self._load_model(model_name_or_path, config, cache_dir)
-
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path if tokenizer_name_or_path is not None else model_name_or_path, cache_dir=cache_dir, **tokenizer_args)
+        #self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path if tokenizer_name_or_path is not None else model_name_or_path, cache_dir=cache_dir, **tokenizer_args)
 
         #No max_seq_length set. Try to infer from model
         if max_seq_length is None:
