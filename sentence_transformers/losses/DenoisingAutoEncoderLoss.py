@@ -44,7 +44,7 @@ class DenoisingAutoEncoderLoss(nn.Module):
             decoder_name_or_path = encoder_name_or_path
         if decoder_name_or_path.startswith('xlnet'):
             self.tokenizer_decoder = XLNetTokenizer.from_pretrained(decoder_name_or_path)
-             decoder_config = XLNetConfig.from_pretrained(decoder_name_or_path)
+            decoder_config = XLNetConfig.from_pretrained(decoder_name_or_path)
         else:
             self.tokenizer_decoder = AutoTokenizer.from_pretrained(decoder_name_or_path)
             decoder_config = AutoConfig.from_pretrained(decoder_name_or_path)
