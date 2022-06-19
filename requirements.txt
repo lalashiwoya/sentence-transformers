@@ -2,7 +2,7 @@ transformers
 tokenizers
 tqdm
 #torch>=1.6.0
-torchvision
+#torchvision
 numpy
 scikit-learn
 scipy
