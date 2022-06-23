@@ -306,10 +306,8 @@ class SentenceTransformer(nn.Sequential):
         """
         Returns the maximal sequence length for input the model accepts. Longer inputs will be truncated
         """
-        if hasattr(self._first_module(), 'max_seq_length'):
-            return self._first_module().max_seq_length
-
-        return None
+         
+        return 512
 
     def tokenize(self, texts: Union[List[str], List[Dict], List[Tuple[str, str]]]):
         """
