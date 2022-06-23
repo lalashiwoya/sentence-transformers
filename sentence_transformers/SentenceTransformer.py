@@ -258,7 +258,6 @@ class SentenceTransformer(nn.Sequential):
         :param sentences: List of sentences
         :param pool: A pool of workers started with SentenceTransformer.start_multi_process_pool
         :param batch_size: Encode sentences with batch size
-        :param chunk_size: Sentences are chunked and sent to the individual processes. If none, it determine a sensible size.
         :return: Numpy matrix with all embeddings
         """
 
@@ -306,7 +305,6 @@ class SentenceTransformer(nn.Sequential):
         """
         Returns the maximal sequence length for input the model accepts. Longer inputs will be truncated
         """
-         
         return 512
 
     def tokenize(self, texts: Union[List[str], List[Dict], List[Tuple[str, str]]]):
@@ -892,7 +890,7 @@ class SentenceTransformer(nn.Sequential):
         return self._first_module().max_seq_length
 
     @max_seq_length.setter
-    def max_seq_length(self, value):
+    def max_seq_length(self, value = 512):
         """
         Property to set the maximal input sequence length for the model. Longer inputs will be truncated.
         """
