@@ -22,6 +22,7 @@ class Pooling(nn.Module):
     def __init__(self,
                  word_embedding_dimension: int,
                  pooling_mode: str = None,
+                 isBert: bool = None, 
                  pooling_mode_cls_token: bool = False,
                  pooling_mode_max_tokens: bool = False,
                  pooling_mode_mean_tokens: bool = True,
@@ -30,7 +31,7 @@ class Pooling(nn.Module):
         super(Pooling, self).__init__()
 
         self.config_keys = ['word_embedding_dimension',  'pooling_mode_cls_token', 'pooling_mode_mean_tokens', 'pooling_mode_max_tokens', 'pooling_mode_mean_sqrt_len_tokens']
-
+        self.isBert = isBert
         if pooling_mode is not None:        #Set pooling mode by string
             pooling_mode = pooling_mode.lower()
             assert pooling_mode in ['mean', 'max', 'cls']
@@ -74,7 +75,12 @@ class Pooling(nn.Module):
         ## Pooling strategy
         output_vectors = []
         if self.pooling_mode_cls_token:
-            cls_token = features.get('cls_token_embeddings', token_embeddings[:, 0])  # Take first token by default
+            if self.isBert:
+                cls_token = features.get('cls_token_embeddings', token_embeddings[:, 0])  # Take first token 
+                print('Take first token')
+            else:
+                cls_token = features.get('cls_token_embeddings', token_embeddings[:, -1])  # Take last token  
+                print('Take last token')
             output_vectors.append(cls_token)
         if self.pooling_mode_max_tokens:
             input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
