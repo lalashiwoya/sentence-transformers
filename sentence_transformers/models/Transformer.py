@@ -27,7 +27,7 @@ class Transformer(nn.Module):
         if model_name_or_path.startswith('xlnet'):
             self.auto_model = XLNetModel.from_pretrained(model_name_or_path)
             self.tokenizer = XLNetTokenizer.from_pretrained(model_name_or_path)
-        elif model_name_or_path.startswith('bert')::
+        elif model_name_or_path.startswith('bert'):
             self.auto_model = BertModel.from_pretrained(model_name_or_path)
             self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path)
         else:
