@@ -1,5 +1,5 @@
 from torch import nn
-from transformers import AutoModel, AutoTokenizer, AutoConfig, T5Config, XLNetTokenizer, XLNetModel
+from transformers import AutoModel, AutoTokenizer, AutoConfig, T5Config, XLNetTokenizer, XLNetModel, BertModel, BertTokenizer
 import json
 from typing import List, Dict, Optional, Union, Tuple
 import os
@@ -17,7 +17,7 @@ class Transformer(nn.Module):
     :param do_lower_case: If true, lowercases the input (independent if the model is cased or not)
     :param tokenizer_name_or_path: Name or path of the tokenizer. When None, then model_name_or_path is used
     """
-    def __init__(self, model_name_or_path: str, max_seq_length: Optional[int] = None,
+    def __init__(self, model_name_or_path: str, max_seq_length: Optional[int] = 512,
                  model_args: Dict = {}, cache_dir: Optional[str] = None,
                  tokenizer_args: Dict = {}, do_lower_case: bool = False,
                  tokenizer_name_or_path : str = None):
@@ -27,9 +27,11 @@ class Transformer(nn.Module):
         if model_name_or_path.startswith('xlnet'):
             self.auto_model = XLNetModel.from_pretrained(model_name_or_path)
             self.tokenizer = XLNetTokenizer.from_pretrained(model_name_or_path)
+        elif model_name_or_path.startswith('bert')::
+            self.auto_model = BertModel.from_pretrained(model_name_or_path)
+            self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path)
         else:
-            self.auto_model = AutoModel.from_pretrained(model_name_or_path)
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+            raise NotImplementedError('Designed just for bert and xlnet')
         #config = AutoConfig.from_pretrained(model_name_or_path, **model_args, cache_dir=cache_dir)
         #self._load_model(model_name_or_path, config, cache_dir)
 
@@ -41,6 +43,7 @@ class Transformer(nn.Module):
                 max_seq_length = min(self.auto_model.config.max_position_embeddings, self.tokenizer.model_max_length)
 
         self.max_seq_length = max_seq_length
+        prirnt('max_seq_length', self.max_seq_length)
 
         if tokenizer_name_or_path is not None:
             self.auto_model.config.tokenizer_class = self.tokenizer.__class__.__name__
@@ -91,6 +94,7 @@ class Transformer(nn.Module):
         Tokenizes a text and maps tokens to token-ids
         """
         output = {}
+        print('if instance of texts a str', isinstance(texts[0], str))
         if isinstance(texts[0], str):
             to_tokenize = [texts]
         elif isinstance(texts[0], dict):
